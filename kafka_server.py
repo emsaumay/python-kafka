@@ -7,8 +7,10 @@ PORT = 9092
 
 # Kafka protocol constants
 
+
 API_VERSIONS_KEY = 18  # ApiVersions
 DESCRIBE_TOPIC_PARTITIONS_KEY = 50  # Custom key for DescribeTopicPartitions
+FETCH_KEY = 1  # Custom key for Fetch
 
 class KafkaServer:
     def __init__(self, host, port):
@@ -48,6 +50,8 @@ class KafkaServer:
                     self.handle_api_versions(client_socket, correlation_id)
                 elif api_key == DESCRIBE_TOPIC_PARTITIONS_KEY:
                     self.handle_describe_topic_partitions(client_socket, correlation_id, data)
+                elif api_key == FETCH_KEY:
+                    self.handle_fetch(client_socket, correlation_id, data)
                 else:
                     self.send_error(client_socket, correlation_id)
         finally:
@@ -55,10 +59,11 @@ class KafkaServer:
 
     def handle_api_versions(self, client_socket, correlation_id):
         # ApiVersions response: correlation_id + error_code + supported APIs
-        # For simplicity, return two supported APIs: ApiVersions and DescribeTopicPartitions
+        # Now includes ApiVersions, DescribeTopicPartitions, and Fetch
         apis = [
-            (API_VERSIONS_KEY, 0, 1),  # (api_key, min_version, max_version)
-            (DESCRIBE_TOPIC_PARTITIONS_KEY, 0, 1)
+            (API_VERSIONS_KEY, 0, 1),
+            (DESCRIBE_TOPIC_PARTITIONS_KEY, 0, 1),
+            (FETCH_KEY, 0, 1)
         ]
         api_count = len(apis)
         response = struct.pack('>I', correlation_id) + b'\x00\x00'  # error_code=0
@@ -70,6 +75,21 @@ class KafkaServer:
         length = struct.pack('>I', len(response))
         client_socket.sendall(length + response)
         print(f"Sent ApiVersions response for correlation_id={correlation_id}")
+    def handle_fetch(self, client_socket, correlation_id, data):
+        # Stub: parse fetch request, respond with messages
+        # For now, just echo back correlation_id and a dummy message list
+        # In a real implementation, parse topics/partitions and return actual messages
+        response = struct.pack('>I', correlation_id)
+        # Example: 1 topic, 1 partition, 1 message
+        response += struct.pack('>i', 1)  # topic count
+        response += b'test'  # topic name (stub)
+        response += struct.pack('>i', 1)  # partition count
+        response += struct.pack('>i', 0)  # partition id
+        response += struct.pack('>i', 1)  # message count
+        response += b'hello'  # message (stub)
+        length = struct.pack('>I', len(response))
+        client_socket.sendall(length + response)
+        print(f"Sent Fetch response for correlation_id={correlation_id}")
 
     def handle_describe_topic_partitions(self, client_socket, correlation_id, data):
         # Stub: parse topic(s) from request, respond with partition info

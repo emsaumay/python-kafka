@@ -28,8 +28,30 @@ The server will listen for incoming Kafka protocol requests. This is a minimal i
  - Returns stub partition info for unknown, single, and multiple topics/partitions
  - Prepares for more advanced topic/partition handling in future stages
 
+
+## Stage 4: Consuming Messages
+## Testing
+
+Unit tests are provided in `test_kafka_server.py` to verify server functionality for all supported APIs and error handling.
+
+### Run tests
+
+```bash
+python test_kafka_server.py
+```
+
+Tests cover:
+- ApiVersions response
+- DescribeTopicPartitions response
+- Fetch response
+- Error handling for unknown API keys
+ - Includes Fetch in APIVersions response
+ - Handles fetch requests for topics/partitions
+ - Returns stub messages for no topics, unknown topics, empty topics, and single/multiple messages
+ - Prepares for more advanced message handling in future stages
+
 ## Next Stages
-Further stages will add support for message consumption.
+Further stages will add support for producing messages and more advanced Kafka features.
 
 ---
 
